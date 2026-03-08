@@ -1,5 +1,5 @@
 # Q402 Gasless Payment Protocol — Avalanche C-Chain
-## Technical Specification v1.0
+## Technical Specification v1.1
 
 ---
 
@@ -99,8 +99,7 @@ This specification covers the Q402 deployment on Avalanche C-Chain, including sm
 
 | Network | Chain ID | Contract Address | Explorer |
 |---------|----------|-----------------|---------|
-| Avalanche C-Chain Mainnet | 43114 | `0x8b532C920cF3c258a50c3C876ddEd37698c1bA5D` | [View on Snowtrace](https://snowtrace.io/address/0x8b532C920cF3c258a50c3C876ddEd37698c1bA5D) |
-| Avalanche Fuji Testnet | 43113 | `0x8b532C920cF3c258a50c3C876ddEd37698c1bA5D` | [View on Snowtrace](https://testnet.snowtrace.io/address/0x8b532C920cF3c258a50c3C876ddEd37698c1bA5D) |
+| Avalanche C-Chain Mainnet | 43114 | `0xE5b90D564650bdcE7C2Bb4344F777f6582e05699` | [View on Snowtrace](https://snowtrace.io/address/0xE5b90D564650bdcE7C2Bb4344F777f6582e05699) |
 
 ### 3.2 Type Hashes
 
@@ -265,7 +264,7 @@ The user signs `authDigest`, producing `(yParity, r, s)`, which is embedded in t
   "authorizationList": [
     {
       "chainId": 43114,
-      "address": "0x8b532C920cF3c258a50c3C876ddEd37698c1bA5D",
+      "address": "0xE5b90D564650bdcE7C2Bb4344F777f6582e05699",
       "nonce":   "<user EOA on-chain nonce>",
       "yParity": 1,
       "r": "0x...",
@@ -326,41 +325,27 @@ The implementation contract can be upgraded or replaced. Under EIP-7702, each ne
 
 ## 6. Verified On-Chain Transactions
 
-### 6.1 Avalanche C-Chain Mainnet
+### 6.1 Avalanche C-Chain Mainnet — Three-Party Separation Test
+
+This transaction verifies the full A → B → C address separation: the token holder (A) signs the authorization, the facilitator (B) submits the transaction and pays gas, and the recipient (C) receives the funds. A holds no AVAX and pays zero gas.
 
 | Field | Value |
 |-------|-------|
 | Network | Avalanche C-Chain Mainnet (Chain ID: 43114) |
-| Transaction Hash | `0xb59e5a38479bbc73d5537dc4ccd8e6da2e860a1fc916cd842b54d7eeb486e2a9` |
-| Block | 79,386,264 |
+| Transaction Hash | `0xea608babc2809f836155679ffe5222cf1e24217741026b0595f8b7328d45f538` |
+| Block | 79,813,359 |
 | Status | ✅ Success |
 | Token | USDC native — `0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E` |
 | Amount Transferred | 0.05 USDC |
-| Gas paid by user | **0.0 AVAX** |
-| Gas paid by facilitator | 0.00011 AVAX (~$0.003) |
-| Explorer | https://snowtrace.io/tx/0xb59e5a38479bbc73d5537dc4ccd8e6da2e860a1fc916cd842b54d7eeb486e2a9 |
+| Address A — Payer (signer) | `0xFe7bA1CDc7077F71855627F9983a70188826726f` |
+| Address B — Facilitator (gas sponsor) | `0xfc77FF29178B7286A8bA703D7a70895CA74fF466` |
+| Address C — Recipient | `0xf5cdcd89b7dae1484197a4a65b97cd7a5e945c28` |
+| Gas paid by A | **0.0 AVAX** |
+| Gas paid by B (facilitator) | ~0.0000027 AVAX |
+| Execution mode | Permit2 fallback (`transferFromWithAuthorization`) |
+| Explorer | https://snowtrace.io/tx/0xea608babc2809f836155679ffe5222cf1e24217741026b0595f8b7328d45f538 |
 
-### 6.2 Avalanche Fuji Testnet
-
-| Field | Value |
-|-------|-------|
-| Network | Avalanche Fuji Testnet (Chain ID: 43113) |
-| Transaction Hash | `0xe87c662d752f7bc422ea8461403f0d2c283dd94cb4d62e4ad565b266b1e859e8` |
-| Block | 52,304,107 |
-| Status | ✅ Success |
-| Gas paid by user | **0.0 AVAX** |
-| Explorer | https://testnet.snowtrace.io/tx/0xe87c662d752f7bc422ea8461403f0d2c283dd94cb4d62e4ad565b266b1e859e8 |
-
-### 6.3 X Layer — Prior Proof of Concept
-
-| Field | Value |
-|-------|-------|
-| Network | X Layer (OKX L2, Chain ID: 196) |
-| Transaction Hash | `0xb442e46847334a141a309aeb57307291b28bc93cd1728a3e5d05227572dbd89c` |
-| Block | 53,339,861 |
-| Status | Accepted on L2 |
-| Amount | 0.05 USDT |
-| Gas paid by user | **0 OKB** |
+> **Note:** The standard Avalanche C-Chain public RPC does not yet expose EIP-7702 Type-0x04 transaction support. The protocol fell back to Permit2 mode, which uses an identical EIP-712 signature verification path. The A → B → C role separation and gasless property for the end user are fully preserved. Native EIP-7702 execution requires an EIP-7702-compatible RPC endpoint.
 
 ---
 
@@ -562,6 +547,5 @@ q402-avalanche/
 - [Avalanche C-Chain Documentation](https://docs.avax.network/learn/avalanche-platform)
 - [Avalanche Fuji Testnet Faucet](https://faucet.avax.network/)
 - [Snowtrace Block Explorer](https://snowtrace.io)
-- Avalanche Mainnet Transaction: [0xb59e5a38...](https://snowtrace.io/tx/0xb59e5a38479bbc73d5537dc4ccd8e6da2e860a1fc916cd842b54d7eeb486e2a9)
-- Avalanche Fuji Transaction: [0xe87c662d...](https://testnet.snowtrace.io/tx/0xe87c662d752f7bc422ea8461403f0d2c283dd94cb4d62e4ad565b266b1e859e8)
-- X Layer Proof of Concept: [0xb442e468...](https://web3.okx.com/explorer/x-layer/tx/0xb442e46847334a141a309aeb57307291b28bc93cd1728a3e5d05227572dbd89c)
+- Avalanche Mainnet Transaction: [0xea608bab...](https://snowtrace.io/tx/0xea608babc2809f836155679ffe5222cf1e24217741026b0595f8b7328d45f538)
+- Deployed Contract: [0xE5b90D56...](https://snowtrace.io/address/0xE5b90D564650bdcE7C2Bb4344F777f6582e05699)
